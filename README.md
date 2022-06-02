@@ -30,8 +30,8 @@ conda activate ./env
 ## Distributions
 
 The data set used to fine-tune the pretrained language models consists of 10,156
-English articles published to [Rodong Sinmun](http://www.rodong.rep.kp/en/) between
-January 2, 2018 and May 28, 2022.
+English newspaper articles published to [Rodong Sinmun](http://www.rodong.rep.kp/en/)
+between January 2, 2018 and May 28, 2022.
 
 The raw data consists of the following columns:
 
