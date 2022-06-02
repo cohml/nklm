@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 PROJECT_ROOT = Path(__file__).resolve().parent
 
 setup(
-    name='nkml',
+    name='nklm',
     version='1.0.0',
     description='Resources for building fake North Korean propaganda generators',
     long_description=(PROJECT_ROOT / 'README.md').read_text(),
