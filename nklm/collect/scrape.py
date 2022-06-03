@@ -50,11 +50,24 @@ def extract_article_title_and_body(
     """
 
     p = webpage.find_all('p')
+    title = body = ''
 
-    title = p[0].text.strip()
-    body = ' '.join(pi.text.strip() for pi in p[1:])
+    while not title:
+        title = p.pop(0).text.strip()
+        if len(p) == 0:
+            break
+    else:
+        body = ' '.join(pi.text.strip() for pi in p).strip().replace('\xa0', ' ')
 
-    return title, body
+    # the HTML source for a small minority of pages contains duplicate paragraphs;
+    # these cannot easily be parsed automatically, so I decided to just throw them out;
+    # after plotting the lengths as a histogram, 1,500 characters for titles and 50,000
+    # characters for bodies seemed like reasonable cutoffs
+    if len(title) > 1.5e3 or len(body) > 5e4:
+        title = body = ''
+
+    return (title.replace('\xa0', ' '),
+            body.replace('\xa0', ' '))
 
 
 def get_dates_and_article_urls(
@@ -139,11 +152,11 @@ def parse_webpage(
     return webpage
 
 
-def webpage_contains_article(
+def webpage_is_valid(
     webpage: BeautifulSoup
 ) -> bool:
     """
-    Determine whether a webpage contains an article available for scraping.
+    Determine whether the webpage actually contains any valid content.
 
     Parameters
     ----------
@@ -152,18 +165,18 @@ def webpage_contains_article(
 
     Returns
     -------
-    contains_article : bool
-        ``True`` if the webpage contains an article, else ``False``
+    is_valid : bool
+        ``True`` if the webpage contains valid content, else ``False``
     """
 
     h1 = webpage.find('h1')
 
-    if h1 is not None and h1.text == '알수 없는 주소':
-        contains_article = False
-    else:
-        contains_article = True
+    if h1 is None:
+        is_valid = True
+    elif h1.text.strip() in ('알수 없는 주소', ''):
+        is_valid = False
 
-    return contains_article
+    return is_valid
 
 
 def write_output(
@@ -214,14 +227,16 @@ def main() -> None:
     for date, url in tqdm(dates_and_urls, **tqdm_kwargs):
         webpage = parse_webpage(url)
 
-        if not webpage_contains_article(webpage):
+        if not webpage_is_valid(webpage):
             continue
 
         title, body = extract_article_title_and_body(webpage)
-        articles.append({'date' : date,
-                         'url' : url,
-                         'title' : title,
-                         'body' : body})
+
+        if all([title, body]):
+            articles.append({'date' : date,
+                             'url' : url,
+                             'title' : title,
+                             'body' : body})
 
     write_output(articles, args)
 
