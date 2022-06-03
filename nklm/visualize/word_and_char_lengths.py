@@ -115,6 +115,8 @@ def plot(lengths: pd.DataFrame, output_directory: Path) -> None:
         stats_str = '\n'.join([fr'$\mu={mu:,.2f}$', fr'$\sigma={sigma:,.2f}$'])
         ax.text(0.99, 0.95, stats_str, transform=ax.transAxes, ha='right', va='top', bbox=bbox)
         ax.grid(axis='y', linestyle='--')
+        ax.set_xlabel('n ' + column[1:])
+        ax.set_ylabel('n articles')
         ax.set_xticks(bins)
         ax.set_xticklabels(ax.get_xticks(), rotation=90)
         ax.set_xlim(0, bins[-1] + bin_sizes[column])
