@@ -29,9 +29,9 @@ conda activate ./env
 
 ## Distributions
 
-The data set used to fine-tune the pretrained language models consists of 10,156
+The data set used to fine-tune the pretrained language models consists of 9,800
 English newspaper articles published to [Rodong Sinmun](http://www.rodong.rep.kp/en/)
-between January 2, 2018 and May 28, 2022.
+between January 2, 2018 and June 3, 2022.
 
 The raw data consists of the following columns:
 
@@ -46,15 +46,9 @@ The lengths of the articles are distributed as follows:
 
 |    | N Words|N Characters|
 |:--:|-------:|-----------:|
-|mean|  363.62|    2,278.23|
-| sd |1,100.71|    6,875.87|
+|mean|  261.78|    1,637.95|
+| sd |  324.69|    2,042.54|
 
-> **_NOTE:_**  The above table is misleading as a handful of articles are extreme
-outliers. This appears to be because the HTML source for the associated webpages
-contained one or more duplicates of the affectedarticle. This issue was not identified
-until after the articles had been scraped, leading to overestimates of the above
-statistics. This will be remedied in due course as a fix is implemented and the
-articles are re-collected.
 
 ## Scrape new data
 
