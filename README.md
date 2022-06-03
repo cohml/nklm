@@ -44,10 +44,7 @@ The raw data consists of the following columns:
 
 The lengths of the articles are distributed as follows:
 
-|    | N Words|N Characters|
-|:--:|-------:|-----------:|
-|mean|  261.78|    1,637.95|
-| sd |  324.69|    2,042.54|
+![Length distributions](./nklm/plots/word_and_char_lengths.png)
 
 
 ## Scrape new data
