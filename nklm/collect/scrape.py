@@ -12,6 +12,24 @@ from urllib.request import urlopen
 URL_BASE = 'http://www.rodong.rep.kp/en/index.php?strPageID=SF01_02_01&newsID={}-000{}'
 
 
+def date(iso: str) -> datetime.date:
+    """
+    Wrangle passed date string into a datetime.date object.
+
+    Paramters
+    ---------
+    iso : str
+        ISO-formatted date string (i.e., "YYYY-MM-DD")
+
+    Returns
+    -------
+    dt : datetime.date
+        datetime object for passed date string
+    """
+
+    return datetime.fromisoformat(iso).date()
+
+
 def extract_article_title_and_body(
     webpage: BeautifulSoup
 ) -> Tuple[str, str]:
@@ -40,8 +58,8 @@ def extract_article_title_and_body(
 
 
 def get_dates_and_article_urls(
-    start_date: datetime,
-    end_date: datetime
+    start_date: datetime.date,
+    end_date: datetime.date
 ) -> List[Tuple[str, str]]:
     """
     Construct a list of URLs to all possible articles published online between the
@@ -49,9 +67,9 @@ def get_dates_and_article_urls(
 
     Parameters
     ----------
-    start_date : datetime
+    start_date : datetime.date
         date to start scraping articles from
-    end_date : datetime
+    end_date : datetime.date
         date to stop scraping articles on (inclusive)
 
     Returns
@@ -75,14 +93,14 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         '-s', '--start_date',
-        type=datetime.fromisoformat,
+        type=date,
         default='2018-01-02', # NB: first date from which `BASE_URL` returns a hit
         help='First date to scrape articles for (must be formatted as "YYYY-MM-DD"). '
              '(default: %(default)s)'
     )
     parser.add_argument(
         '-e', '--end_date',
-        type=datetime.fromisoformat,
+        type=date,
         default=datetime.now().date(),
         help='Last date to scrape articles for (must be formatted as "YYYY-MM-DD"). '
              '(default: %(default)s)'
@@ -167,7 +185,7 @@ def write_output(
     articles = pd.DataFrame(articles)
     articles = articles.apply(lambda s: s.str.strip())
 
-    output_basename = f'articles_{args.start_date.date()}_{args.end_date.date()}.csv'
+    output_basename = f'articles_{args.start_date}_{args.end_date}.csv'
     output_filepath = args.output_directory / output_basename
     args.output_directory.mkdir(exist_ok=True, parents=True)
 
@@ -180,15 +198,15 @@ def main() -> None:
 
     if args.start_date > args.end_date:
         err = (
-            f'The end date ({args.end_date.date()}) must be later than '
-            f'or equal to the start date ({args.start_date.date()}).'
+            f'The end date ({args.end_date}) must be later than '
+            f'or equal to the start date ({args.start_date}).'
         )
         raise argparse.ArgumentTypeError(err)
 
     articles = []
     dates_and_urls = get_dates_and_article_urls(args.start_date, args.end_date)
     tqdm_kwargs = {
-        'desc' : f'Scraping from {args.start_date.date()} to {args.end_date.date()}',
+        'desc' : f'Scraping from {args.start_date} to {args.end_date}',
         'total' : len(dates_and_urls),
         'unit' : ' articles'
     }
