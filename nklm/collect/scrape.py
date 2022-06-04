@@ -34,14 +34,14 @@ def date(iso: str) -> datetime.date:
 
 
 def extract_article_title_and_body(
-    webpage: BeautifulSoup
+    html: BeautifulSoup
 ) -> Tuple[str, str]:
     """
     Extract title and body from the HTML source for a single article.
 
     Parameters
     ----------
-    webpage : BeautifulSoup
+    html : BeautifulSoup
         full HTML source for a single article
 
     Returns
@@ -52,7 +52,7 @@ def extract_article_title_and_body(
         article body with all newlines removed
     """
 
-    p = webpage.find_all('p')
+    p = html.find_all('p')
     title = body = ''
 
     while not title:
@@ -144,26 +144,26 @@ def parse_webpage(
 
     Returns
     -------
-    webpage : BeautifulSoup
+    html : BeautifulSoup
         full HTML source for a single webpage
     """
 
     with urlopen(url) as site:
         html = site.read().decode()
-        webpage = BeautifulSoup(html, 'html.parser')
+        html = BeautifulSoup(html, 'html.parser')
 
-    return webpage
+    return html
 
 
 def webpage_is_valid(
-    webpage: BeautifulSoup
+    html: BeautifulSoup
 ) -> bool:
     """
     Determine whether the webpage actually contains any valid content.
 
     Parameters
     ----------
-    webpage : BeautifulSoup
+    html : BeautifulSoup
         full HTML source for a single webpage
 
     Returns
@@ -172,7 +172,7 @@ def webpage_is_valid(
         ``True`` if the webpage contains valid content, else ``False``
     """
 
-    h1 = webpage.find('h1')
+    h1 = html.find('h1')
 
     if h1 is None:
         is_valid = True
@@ -228,12 +228,12 @@ def main() -> None:
     }
 
     for date, url in tqdm(dates_and_urls, **tqdm_kwargs):
-        webpage = parse_webpage(url)
+        html = parse_webpage(url)
 
-        if not webpage_is_valid(webpage):
+        if not webpage_is_valid(html):
             continue
 
-        title, body = extract_article_title_and_body(webpage)
+        title, body = extract_article_title_and_body(html)
 
         if all([title, body]):
             articles.append({'date' : date,
