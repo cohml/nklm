@@ -85,8 +85,7 @@ def plot(lengths: pd.DataFrame, output_directory: Path) -> None:
 
     alpha = 2/3
     color = 'silver'
-    thousands_separator = lambda x, p: format(int(x), ',')
-    major_xtick_formatter = FuncFormatter(thousands_separator)
+    major_xtick_formatter = FuncFormatter('{:,}'.format)
     bin_sizes = {
         'nwords' : 100,
         'nchars' : 1000
