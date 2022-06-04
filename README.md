@@ -48,7 +48,7 @@ The lengths of the articles are distributed as follows:
 
 ## Head
 
-```python
+```
 >>> import pandas as pd
 >>> csv = './data/raw/articles_2018-01-02_2022-06-03.csv'
 >>> pd.read_csv(csv).head(10)
