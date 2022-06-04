@@ -6,6 +6,8 @@ import pandas as pd
 from matplotlib.ticker import FuncFormatter
 from pathlib import Path
 
+from nklm.util.defaults import DEFAULTS
+
 
 def compute_lengths(articles: pd.Series) -> pd.DataFrame:
     """
@@ -43,7 +45,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         '-o', '--output_directory',
         type=lambda p: Path(p).resolve(),
-        default=Path(__file__).resolve().parent.parent / 'plots',
+        default=DEFAULTS['PATHS']['REPO_ROOT'] / 'nklm' / 'plots',
         help='directory to save plot to as PNG (default: %(default)s)'
     )
     return parser.parse_args()
