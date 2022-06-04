@@ -7,6 +7,7 @@ from matplotlib.ticker import FuncFormatter
 from pathlib import Path
 
 from nklm.util.defaults import DEFAULTS
+from nklm.util.utils import full_path
 
 
 def compute_lengths(articles: pd.Series) -> pd.DataFrame:
@@ -38,13 +39,13 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         '-a', '--articles_csv_filepath',
-        type=lambda p: Path(p).resolve(),
+        type=full_path,
         required=True,
         help='path to CSV containing article raw texts'
     )
     parser.add_argument(
         '-o', '--output_directory',
-        type=lambda p: Path(p).resolve(),
+        type=full_path,
         default=DEFAULTS['PATHS']['REPO_ROOT'] / 'nklm' / 'plots',
         help='directory to save plot to as PNG (default: %(default)s)'
     )

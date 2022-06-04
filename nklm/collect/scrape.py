@@ -9,6 +9,7 @@ from typing import Dict, List, Tuple
 from urllib.request import urlopen
 
 from nklm.util.defaults import DEFAULTS
+from nklm.util.utils import full_path
 
 
 URL_BASE = 'http://www.rodong.rep.kp/en/index.php?strPageID=SF01_02_01&newsID={}-000{}'
@@ -122,7 +123,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         '-o', '--output_directory',
-        type=Path,
+        type=full_path,
         default=DEFAULTS['PATHS']['REPO_ROOT'] / 'nklm' / 'data' / 'raw',
         help='Directory to write output CSV to. (default: %(default)s)'
     )
