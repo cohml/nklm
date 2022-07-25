@@ -1,3 +1,11 @@
+"""
+Compute the type-token ratio (TTR) for each word type across all articles.
+
+In other words, identify each unique word type, then compute the percentage of all
+tokens across all articles that belong to each type. So given an text "The dog ate the
+toy.", the TTR for the word "the" (case-insensitive) is 2 / 5 = 0.4.
+"""
+
 import argparse
 import pandas as pd
 import spacy
