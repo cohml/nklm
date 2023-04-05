@@ -76,14 +76,14 @@ conda activate ./env
 Then run the following command, substituting in actual dates as appropriate:
 
 ```bash
-scrape --start_date {YYYY-MM-DD} --end_date {YYYY-MM-DD}
+scrape --start-date {YYYY-MM-DD} --end-date {YYYY-MM-DD}
 ```
 
-If either of ``--start_date`` or ``--end_date`` are unspecified, the following default
+If either of ``--start-date`` or ``--end-date`` are unspecified, the following default
 values will be used for the missing argument:
 
-* ``--start_date`` : 2018-01-02
-* ``--end_date``   : {today's date}
+* ``--start-date`` : 2018-01-02
+* ``--end-date``   : {today's date}
 
 To see all options for customizing your new data collection, run the following command:
 

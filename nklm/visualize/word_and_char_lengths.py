@@ -38,13 +38,13 @@ def parse_args() -> argparse.Namespace:
                     'histograms, saving the result as PNG.'
     )
     parser.add_argument(
-        '-a', '--articles_csv_filepath',
+        '-a', '--articles-csv-filepath',
         type=full_path,
         required=True,
         help='path to CSV containing article raw texts'
     )
     parser.add_argument(
-        '-o', '--output_directory',
+        '-o', '--output-directory',
         type=full_path,
         default=DEFAULTS['PATHS']['REPO_ROOT'] / 'nklm' / 'plots',
         help='directory to save plot to as PNG (default: %(default)s)'

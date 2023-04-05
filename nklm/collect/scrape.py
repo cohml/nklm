@@ -106,21 +106,21 @@ def parse_args() -> argparse.Namespace:
                     'website, then save them to CSV with the dates in the filename.'
     )
     parser.add_argument(
-        '-s', '--start_date',
+        '-s', '--start-date',
         type=date,
         default='2018-01-02', # NB: first date from which `BASE_URL` returns a hit
         help='First date to scrape articles for (must be formatted as "YYYY-MM-DD"). '
              '(default: %(default)s)'
     )
     parser.add_argument(
-        '-e', '--end_date',
+        '-e', '--end-date',
         type=date,
         default=datetime.now().date(),
         help='Last date to scrape articles for (must be formatted as "YYYY-MM-DD"). '
              '(default: %(default)s)'
     )
     parser.add_argument(
-        '-o', '--output_directory',
+        '-o', '--output-directory',
         type=full_path,
         default=DEFAULTS['PATHS']['REPO_ROOT'] / 'nklm' / 'data' / 'raw',
         help='Directory to write output CSV to. (default: %(default)s)'

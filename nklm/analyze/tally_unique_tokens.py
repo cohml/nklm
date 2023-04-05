@@ -60,13 +60,13 @@ def parse_args() -> argparse.Namespace:
                     'whitespace, and punctuation, writing the results to CSV.'
     )
     parser.add_argument(
-        '-a', '--articles_csv_filepath',
+        '-a', '--articles-csv-filepath',
         type=full_path,
         required=True,
         help='path to CSV containing article raw texts'
     )
     parser.add_argument(
-        '-o', '--output_directory',
+        '-o', '--output-directory',
         type=full_path,
         default=DEFAULTS['PATHS']['REPO_ROOT'] / 'nklm' / 'data' / 'analyses',
         help='directory to save tokens to as CSV (default: %(default)s)'
