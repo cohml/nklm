@@ -95,13 +95,11 @@ def get_dates_and_article_urls(
     """
 
     dates = pd.date_range(start_date, end_date).strftime('%Y-%m-%d')
-    dates_and_urls = [(d, URL_BASE.format(d, i)) for d in dates for i in range(1, 10)]
-
-    return dates_and_urls
+    return [(d, URL_BASE.format(d, i)) for d in dates for i in range(1, 10)]
 
 
 def parse_args() -> argparse.Namespace:
-    """Set command line arguments."""
+    """Parse command line arguments."""
 
     parser = argparse.ArgumentParser(
         description='Scrape all articles between two dates from the Rodong Sinmun '
@@ -127,7 +125,6 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULTS['PATHS']['REPO_ROOT'] / 'nklm' / 'data' / 'raw',
         help='Directory to write output CSV to. (default: %(default)s)'
     )
-
     return parser.parse_args()
 
 
@@ -150,9 +147,7 @@ def parse_webpage(
 
     with urlopen(url) as site:
         html = site.read().decode()
-        html = BeautifulSoup(html, 'html.parser')
-
-    return html
+        return BeautifulSoup(html, 'html.parser')
 
 
 def webpage_is_valid(
@@ -236,10 +231,13 @@ def main() -> None:
         title, body = extract_article_title_and_body(html)
 
         if all([title, body]):
-            articles.append({'date' : date,
-                             'url' : url,
-                             'title' : title,
-                             'body' : body})
+            article_metadata = {
+                'date' : date,
+                'url' : url,
+                'title' : title,
+                'body' : body
+            }
+            articles.append(article_metadata)
 
     write_output(articles, args)
 
