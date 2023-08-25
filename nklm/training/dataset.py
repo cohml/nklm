@@ -20,20 +20,33 @@ class RodongSinmunDataset(Dataset):
 
     def __init__(self, config: TrainingConfig):
         super().__init__()
+
+        # read raw data
         self.df = pd.read_csv(config.data_csv_path)
+
+        # optionally sentence-tokenize articles with spacy
+        if config.sentence_tokenize is True:
+            self.df = self._sentence_tokenize()
+
+        # TODO: write df to output directory
+
+        # initialize tokenizer
         self.tokenizer =  DistilBertTokenizer.from_pretrained(
             config.model_name_or_path
         )
         if config.max_length is None:
             config.max_length = self.tokenizer.model_max_length
         self.max_length = config.max_length
-        if config.sentence_tokenize is True:
-            examples = self._sentence_tokenize()
-        else:
-            examples = self.df.to_dict(orient='records')
-        self.examples = HFDataset.from_list(examples).map(
+
+        # tokenize examples for model
+        examples = HFDataset.from_list(
+            self.df.body.to_frame().to_dict(orient='records')
+        )
+        examples = examples.map(
             self._encode, batched=True, num_proc=cpu_count()
         )
+        self.examples = examples.remove_columns('body')
+
 
     def __getitem__(self, i: int):
         return self.examples[i]
@@ -65,7 +78,7 @@ class RodongSinmunDataset(Dataset):
             n_process=cpu_count(),
             disable=['tagger', 'attribute_ruler', 'lemmatizer', 'ner']
         )
-        return [
+        return pd.DataFrame(
             {
                 'date': doc._.date,
                 'url': doc._.url,
@@ -73,7 +86,7 @@ class RodongSinmunDataset(Dataset):
                 'body': sent.text,
             }
             for doc in docs for sent in doc.sents
-        ]
+        )
 
     def _tag_sentences_with_article_metadata(
         self,
