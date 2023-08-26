@@ -25,6 +25,7 @@ class TrainingConfigDefaults(BaseModel):
     learning_rate: float = Field(default=5e-5)
     weight_decay: float = Field(default=0.0)
     no_decay_bias_and_layer_norm: bool = Field(default=False)
+    no_gpu: bool = Field(default=False)
 
 
 class TrainingConfig(TrainingConfigDefaults):
