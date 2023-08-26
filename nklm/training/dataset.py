@@ -40,13 +40,14 @@ class RodongSinmunDataset(Dataset):
         self.max_length = config.max_length
 
         # tokenize examples for model
-        examples = HFDataset.from_list(
-            self.df.body.to_frame().to_dict(orient='records')
+        records = self.df.to_dict(orient='records')
+        self.examples = HFDataset.from_list(records).map(
+            self._encode,
+            remove_columns=self.df.columns.tolist(),
+            batched=True,
+            num_proc=cpu_count(),
+            desc='Encoding',
         )
-        examples = examples.map(
-            self._encode, batched=True, num_proc=cpu_count()
-        )
-        self.examples = examples.remove_columns('body')
 
     def __getitem__(self, i: int):
         return self.examples[i]
