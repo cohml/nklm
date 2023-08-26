@@ -7,6 +7,7 @@ import pandas as pd
 import spacy
 from spacy.tokens import Doc, Span
 from torch.utils.data import Dataset
+from tqdm import tqdm
 from transformers import DistilBertTokenizer
 
 from config import TrainingConfig
@@ -47,7 +48,6 @@ class RodongSinmunDataset(Dataset):
         )
         self.examples = examples.remove_columns('body')
 
-
     def __getitem__(self, i: int):
         return self.examples[i]
 
@@ -71,12 +71,18 @@ class RodongSinmunDataset(Dataset):
         for field in metadata_fields:
             Doc.set_extension(field, default=None)
         nlp = spacy.load('en_core_web_md')
-        docs = nlp.pipe(
-            self._tag_sentences_with_article_metadata(
-                nlp, self.df.to_dict(orient='records')
+        num_proc = cpu_count()
+        docs = tqdm(
+            nlp.pipe(
+                self._tag_sentences_with_article_metadata(
+                    nlp, self.df.to_dict(orient='records')
+                ),
+                n_process=num_proc,
+                disable=['tagger', 'attribute_ruler', 'lemmatizer', 'ner']
             ),
-            n_process=cpu_count(),
-            disable=['tagger', 'attribute_ruler', 'lemmatizer', 'ner']
+            unit=' articles',
+            total=len(self.df),
+            desc=f'Sentence tokenization ({num_proc=})',
         )
         return pd.DataFrame(
             {
