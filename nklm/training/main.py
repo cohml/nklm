@@ -1,4 +1,6 @@
 import click
+import json
+from pathlib import Path
 
 import torch
 from torch.utils.data import DataLoader
@@ -13,8 +15,11 @@ from model import get_model, get_optimizer
 @click.command()
 @click.option('--config-json-path', type=str)
 @click.option('--data-csv-path', type=str)
+@click.option('--output-directory', type=str)
+@click.option('--overwrite-existing', is_flag=True)
 @click.option('--model-name-or-path', type=str)
 @click.option('--sentence-tokenize', is_flag=True)
+@click.option('--checkpoint-epochs', is_flag=True)
 @click.option('--num-epochs', type=int)
 # @click.option('--dev-proportion', type=float)
 @click.option('--batch-size', type=int)
@@ -27,8 +32,11 @@ from model import get_model, get_optimizer
 def main(
     config_json_path: str | None,
     data_csv_path: str | None,
+    output_directory: str | None,
+    overwrite_existing: bool,
     model_name_or_path: str | None,
     sentence_tokenize: bool,
+    checkpoint_epochs: bool,
     num_epochs: int | None,
     batch_size: float | None,
     max_length: int | None,
@@ -43,8 +51,11 @@ def main(
     config = TrainingConfig(
         config_json_path,
         data_csv_path=data_csv_path,
+        output_directory=output_directory,
+        overwrite_existing=overwrite_existing,
         model_name_or_path=model_name_or_path,
         sentence_tokenize=sentence_tokenize,
+        checkpoint_epochs=checkpoint_epochs,
         num_epochs=num_epochs,
         batch_size=batch_size,
         max_length=max_length,
@@ -67,6 +78,7 @@ def main(
         batch_size=config.batch_size,
         collate_fn=data_collator,
     )
+    config.write_config_json()
 
     # model
     model = get_model(config)
@@ -109,12 +121,26 @@ def main(
             per_step_losses.append(loss.item())
             epoch_total_loss += loss
 
+        epoch_mean_loss = (epoch_total_loss / n_batches).item()
         per_epoch_batch_losses.append(per_step_losses)
-        per_epoch_mean_losses.append(
-            (epoch_total_loss / n_batches).item()
-        )
+        per_epoch_mean_losses.append(epoch_mean_loss)
+        print('Mean train loss:', epoch_mean_loss)
 
-        print(per_epoch_mean_losses[-1])
+        # save model checkpoint
+        if checkpoint_epochs or epoch == config.num_epochs:
+            checkpoint_directory = config.output_directory / f'epoch-{epoch}'
+            model.save_pretrained(checkpoint_directory)
+            print(f'Model state saved to {checkpoint_directory}')
+
+    # save metrics
+    with (config.output_directory / 'training_metrics.json').open('w') as f:
+        metrics = {
+            'per_epoch': per_epoch_mean_losses,
+            'per_step': per_epoch_batch_losses,
+        }
+        json.dump(metrics, f, indent=4)
+
+    print('***** Training complete *****')
 
 
 if __name__ == '__main__':

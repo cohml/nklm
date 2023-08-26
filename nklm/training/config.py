@@ -15,8 +15,11 @@ class TrainingConfigDefaults(BaseModel):
                 / 'articles_2018-01-02_2022-06-03.csv'
         )
     )
+    output_directory: str = Field(default=None, required=True) # TODO: how to require non-None?
+    overwrite_existing: bool = Field(default=False)
     model_name_or_path: str = Field(default='distilbert-base-cased')
     sentence_tokenize: bool = Field(default=False)
+    checkpoint_epochs: bool = Field(default=False)
     num_epochs: int = Field(default=3)
     # dev_proportion: float = Field(default=0.025)
     batch_size: int = Field(default=8)
@@ -47,15 +50,26 @@ class TrainingConfig(TrainingConfigDefaults):
             self._override_defaults(config_json)
         elif kwargs:
             self._override_defaults(kwargs)
+        self.output_directory = Path(self.output_directory).resolve()
+        if not self.overwrite_existing:
+            assert not self.output_directory.exists() # TODO: add error message
 
     def _override_defaults(self, custom_configs: Dict[str, str]) -> None:
         for field, default_value in BaseModel._iter(TrainingConfigDefaults()):
             custom_value = custom_configs.get(field)
             if custom_value is not None and custom_value != default_value:
-                print(
-                    'Training configuration -- Overriding default '
-                    f'({field}={default_value!r}): {custom_value!r}'
-                )
                 setattr(self, field, custom_value)
+                if field != 'output_directory':
+                    print(
+                        'Training configuration -- Overriding default '
+                        f'({field}={default_value!r}): {custom_value!r}'
+                    )
 
     # def _split()
+
+    def write_config_json(self):
+        self.output_directory.mkdir(exist_ok=True)
+        with (self.output_directory / 'training_config.json').open('w') as f:
+            configs = vars(self).copy()
+            configs['output_directory'] = str(configs['output_directory'])
+            json.dump(configs, f, indent=4, sort_keys=True)
