@@ -32,7 +32,7 @@ class RodongSinmunDataset(Dataset):
         # TODO: write df to output directory
 
         # initialize tokenizer
-        self.tokenizer =  DistilBertTokenizer.from_pretrained(
+        self.tokenizer = DistilBertTokenizer.from_pretrained(
             config.model_name_or_path
         )
         if config.max_length is None:

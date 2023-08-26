@@ -19,7 +19,7 @@ class TrainingConfigDefaults(BaseModel):
     sentence_tokenize: bool = Field(default=False)
     num_epochs: int = Field(default=3)
     # dev_proportion: float = Field(default=0.025)
-    batch_size: float = Field(default=8)
+    batch_size: int = Field(default=8)
     max_length: int = Field(default=None)
     mlm_probability: float = Field(default=0.15)
     learning_rate: float = Field(default=5e-5)
