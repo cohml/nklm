@@ -7,32 +7,67 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from transformers import DataCollatorForLanguageModeling
 
-from config import TrainingConfig
+from config import TrainingConfig, TrainingConfigDefaults
 from dataset import RodongSinmunDataset
 from model import get_model, get_optimizer
 
 
+DEFAULTS = TrainingConfigDefaults()
+
+
 @click.command()
-@click.option('--config-json-path', type=str)
-@click.option('--data-csv-path', type=str)
-@click.option('--output-directory', type=str)
-@click.option('--overwrite-existing', is_flag=True)
-@click.option('--model-name-or-path', type=str)
-@click.option('--sentence-tokenize', is_flag=True)
-@click.option('--checkpoint-epochs', is_flag=True)
-@click.option('--num-epochs', type=int)
-# @click.option('--dev-proportion', type=float)
-@click.option('--batch-size', type=int)
-@click.option('--max-length', type=int)
-@click.option('--mlm-probability', type=float)
-@click.option('--learning-rate', type=float)
-@click.option('--weight-decay', type=float)
-@click.option('--no-decay-bias-and-layer-norm', is_flag=True)
-@click.option('--no-gpu', is_flag=True)
+@click.option(
+    '--config-json-path', type=str, help='Default: None'
+)
+@click.option(
+    '--output-directory', type=str, help='Default: None'
+)
+@click.option(
+    '--data-csv-path', type=str, help=f'Default: {DEFAULTS.data_csv_path}'
+)
+@click.option(
+    '--overwrite-existing', is_flag=True, help=f'Default: {DEFAULTS.overwrite_existing}'
+)
+@click.option(
+    '--model-name-or-path', type=str, help=f'Default: {DEFAULTS.model_name_or_path}'
+)
+@click.option(
+    '--sentence-tokenize', is_flag=True, help=f'Default: {DEFAULTS.sentence_tokenize}'
+)
+@click.option(
+    '--checkpoint-epochs', is_flag=True, help=f'Default: {DEFAULTS.checkpoint_epochs}'
+)
+@click.option(
+    '--num-epochs', type=int, help=f'Default: {DEFAULTS.num_epochs}'
+)
+# @click.option(
+# '--dev-proportion', type=float, help=f'Default: {DEFAULTS.dev_proportion}'
+# )
+@click.option(
+    '--batch-size', type=int, help=f'Default: {DEFAULTS.batch_size}'
+)
+@click.option(
+    '--max-length', type=int, help=f'Default: {DEFAULTS.max_length}'
+)
+@click.option(
+    '--mlm-probability', type=float, help=f'Default: {DEFAULTS.mlm_probability}'
+)
+@click.option(
+    '--learning-rate', type=float, help=f'Default: {DEFAULTS.learning_rate}'
+)
+@click.option(
+    '--weight-decay', type=float, help=f'Default: {DEFAULTS.weight_decay}'
+)
+@click.option(
+    '--no-decay-bias-and-layer-norm', is_flag=True, help=f'Default: {DEFAULTS.no_decay_bias_and_layer_norm}'
+)
+@click.option(
+    '--no-gpu', is_flag=True, help=f'Default: {DEFAULTS.no_gpu}'
+)
 def main(
     config_json_path: str | None,
-    data_csv_path: str | None,
     output_directory: str | None,
+    data_csv_path: str | None,
     overwrite_existing: bool,
     model_name_or_path: str | None,
     sentence_tokenize: bool,
@@ -50,8 +85,8 @@ def main(
     # configs
     config = TrainingConfig(
         config_json_path,
-        data_csv_path=data_csv_path,
         output_directory=output_directory,
+        data_csv_path=data_csv_path,
         overwrite_existing=overwrite_existing,
         model_name_or_path=model_name_or_path,
         sentence_tokenize=sentence_tokenize,

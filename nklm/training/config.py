@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 class TrainingConfigDefaults(BaseModel):
 
+    output_directory: str = Field(default=None, required=True) # TODO: how to require non-None?
     data_csv_path: str = Field(
         default=str(
             Path(__file__).resolve().parents[1]
@@ -15,7 +16,6 @@ class TrainingConfigDefaults(BaseModel):
                 / 'articles_2018-01-02_2022-06-03.csv'
         )
     )
-    output_directory: str = Field(default=None, required=True) # TODO: how to require non-None?
     overwrite_existing: bool = Field(default=False)
     model_name_or_path: str = Field(default='distilbert-base-cased')
     sentence_tokenize: bool = Field(default=False)
