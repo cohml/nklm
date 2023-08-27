@@ -124,7 +124,7 @@ def main(
         epoch_mean_loss = (epoch_total_loss / n_batches).item()
         per_epoch_batch_losses.append(per_step_losses)
         per_epoch_mean_losses.append(epoch_mean_loss)
-        print('Mean train loss:', epoch_mean_loss)
+        print(f'Epoch {epoch} Mean train loss: {epoch_mean_loss}')
 
         # save model checkpoint
         if checkpoint_epochs or epoch == config.num_epochs:
