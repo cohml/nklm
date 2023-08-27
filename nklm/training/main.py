@@ -196,7 +196,8 @@ def main(
 
                 # predict
                 eval_batch = eval_batch.to(device)
-                output = model(**eval_batch)
+                with torch.no_grad():
+                    output = model(**eval_batch)
 
                 # compute loss
                 eval_loss = output.loss
