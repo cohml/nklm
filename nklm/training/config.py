@@ -21,7 +21,8 @@ class TrainingConfigDefaults(BaseModel):
     sentence_tokenize: bool = Field(default=False)
     checkpoint_epochs: bool = Field(default=False)
     num_epochs: int = Field(default=3)
-    # dev_proportion: float = Field(default=0.025)
+    do_eval: bool = Field(default=False)
+    test_proportion: float = Field(default=0.025)
     batch_size: int = Field(default=8)
     max_length: int = Field(default=None)
     mlm_probability: float = Field(default=0.15)
@@ -62,11 +63,9 @@ class TrainingConfig(TrainingConfigDefaults):
                 setattr(self, field, custom_value)
                 if field != 'output_directory':
                     print(
-                        'Training configuration -- Overriding default '
-                        f'({field}={default_value!r}): {custom_value!r}'
+                        'Training configuration -- Overriding default: '
+                        f'{field} ({default_value!r} -> {custom_value!r})'
                     )
-
-    # def _split()
 
     def write_config_json(self):
         self.output_directory.mkdir(exist_ok=True)

@@ -1,6 +1,5 @@
 import click
 import json
-from pathlib import Path
 
 import torch
 from torch.utils.data import DataLoader
@@ -10,6 +9,7 @@ from transformers import DataCollatorForLanguageModeling
 from config import TrainingConfig, TrainingConfigDefaults
 from dataset import RodongSinmunDataset
 from model import get_model, get_optimizer
+from utils import validate_proportion
 
 
 DEFAULTS = TrainingConfigDefaults()
@@ -40,9 +40,12 @@ DEFAULTS = TrainingConfigDefaults()
 @click.option(
     '--num-epochs', type=int, help=f'Default: {DEFAULTS.num_epochs}'
 )
-# @click.option(
-# '--dev-proportion', type=float, help=f'Default: {DEFAULTS.dev_proportion}'
-# )
+@click.option(
+    '--do-eval', is_flag=True, help=f'Default: {DEFAULTS.do_eval}'
+)
+@click.option(
+    '--test-proportion', type=float, help=f'Default: {DEFAULTS.test_proportion}', callback=validate_proportion
+)
 @click.option(
     '--batch-size', type=int, help=f'Default: {DEFAULTS.batch_size}'
 )
@@ -76,6 +79,8 @@ def main(
     sentence_tokenize: bool,
     checkpoint_epochs: bool,
     num_epochs: int | None,
+    do_eval: bool,
+    test_proportion: float | None,
     batch_size: float | None,
     max_length: int | None,
     mlm_probability: float | None,
@@ -96,6 +101,8 @@ def main(
         sentence_tokenize=sentence_tokenize,
         checkpoint_epochs=checkpoint_epochs,
         num_epochs=num_epochs,
+        do_eval=do_eval,
+        test_proportion=test_proportion,
         batch_size=batch_size,
         max_length=max_length,
         mlm_probability=mlm_probability,
@@ -112,12 +119,21 @@ def main(
     data_collator = DataCollatorForLanguageModeling(
         tokenizer=dataset.tokenizer, mlm_probability=config.mlm_probability
     )
-    dataloader = DataLoader(
-        dataset,
+    train_dataloader = DataLoader(
+        dataset.examples['train'],
         shuffle=True,
         batch_size=config.batch_size,
         collate_fn=data_collator,
     )
+    n_train_batches = len(train_dataloader)
+    if config.do_eval:
+        eval_dataloader = DataLoader(
+            dataset.examples['test'],
+            shuffle=True,
+            batch_size=config.batch_size,
+            collate_fn=data_collator,
+        )
+        n_eval_batches = len(eval_dataloader)
     config.write_config_json()
 
     # model
@@ -133,38 +149,65 @@ def main(
     # train
     print('***** Running training *****')
     model = model.to(device)
-    n_batches = len(dataloader)
-    per_epoch_mean_losses = []
-    per_epoch_batch_losses = []
+    per_epoch_mean_train_losses = []
+    per_epoch_batch_train_losses = []
+    per_epoch_mean_eval_losses = []
     for epoch in range(1, config.num_epochs + 1):
         model.train()
-        epoch_total_loss = 0
+        epoch_total_train_loss = 0
 
         per_step_losses = []
-        for step, batch in tqdm(
-            enumerate(dataloader),
-            desc=f'Epoch {epoch}',
-            total=n_batches,
+        for train_step, train_batch in tqdm(
+            enumerate(train_dataloader),
+            desc=f'Epoch {epoch} (train)',
+            total=n_train_batches,
             unit=' batches',
         ):
 
             # predict
-            batch = batch.to(device)
-            output = model(**batch)
+            train_batch = train_batch.to(device)
+            output = model(**train_batch)
 
             # compute and backpropogate loss
-            loss = output.loss
-            loss.backward()
+            train_loss = output.loss
+            train_loss.backward()
             optimizer.step()
             optimizer.zero_grad()
-            loss = loss.detach().float()
-            per_step_losses.append(loss.item())
-            epoch_total_loss += loss
+            train_loss = train_loss.detach().float()
+            per_step_losses.append(train_loss.item())
+            epoch_total_train_loss += train_loss
 
-        epoch_mean_loss = (epoch_total_loss / n_batches).item()
-        per_epoch_batch_losses.append(per_step_losses)
-        per_epoch_mean_losses.append(epoch_mean_loss)
-        print(f'Epoch {epoch} Mean train loss: {epoch_mean_loss}')
+        # evaluate
+        if config.do_eval:
+            model.eval()
+            epoch_total_eval_loss = 0
+
+            for eval_step, eval_batch in tqdm(
+                enumerate(eval_dataloader),
+                desc=f'Epoch {epoch} (eval)',
+                total=n_eval_batches,
+                unit=' batches',
+            ):
+
+                # predict
+                eval_batch = eval_batch.to(device)
+                output = model(**eval_batch)
+
+                # compute loss
+                eval_loss = output.loss
+                eval_loss = eval_loss.detach().float()
+                per_step_losses.append(eval_loss.item())
+                epoch_total_eval_loss += eval_loss
+
+        # show epoch results
+        epoch_mean_train_loss = (epoch_total_train_loss / n_train_batches).item()
+        per_epoch_batch_train_losses.append(per_step_losses)
+        per_epoch_mean_train_losses.append(epoch_mean_train_loss)
+        print(f'Epoch {epoch} mean train loss: {epoch_mean_train_loss}')
+        if config.do_eval:
+            epoch_mean_eval_loss = (epoch_total_eval_loss / n_eval_batches).item()
+            per_epoch_mean_eval_losses.append(epoch_mean_eval_loss)
+            print(f'Epoch {epoch} mean eval loss: {epoch_mean_eval_loss}')
 
         # save model checkpoint
         if checkpoint_epochs or epoch == config.num_epochs:
@@ -173,11 +216,13 @@ def main(
             print(f'Model state saved to {checkpoint_directory}')
 
     # save metrics
+    metrics = {
+        'per_epoch_train_loss': per_epoch_mean_train_losses,
+        'per_step_train_loss': per_epoch_batch_train_losses,
+    }
+    if config.do_eval:
+        metrics['per_epoch_eval_loss'] = per_epoch_mean_eval_losses
     with (config.output_directory / 'training_metrics.json').open('w') as f:
-        metrics = {
-            'per_epoch': per_epoch_mean_losses,
-            'per_step': per_epoch_batch_losses,
-        }
         json.dump(metrics, f, indent=4)
 
     print('***** Training complete *****')

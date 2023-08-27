@@ -3,6 +3,7 @@ from multiprocessing import cpu_count
 from typing import Any, Dict, List
 
 from datasets import Dataset as HFDataset
+import numpy as np
 import pandas as pd
 import spacy
 from spacy.tokens import Doc, Span
@@ -23,13 +24,27 @@ class RodongSinmunDataset(Dataset):
         super().__init__()
 
         # read raw data
-        self.df = pd.read_csv(config.data_csv_path)
+        self.df = pd.read_csv(config.data_csv_path).assign(split='train')
 
         # optionally sentence-tokenize articles with spacy
         if config.sentence_tokenize is True:
             self.df = self._sentence_tokenize()
 
+        # optionally split into train and test partitions
+        if config.do_eval:
+            random_state = np.random.RandomState(config.seed)
+            test_indices = np.argwhere(
+                random_state.random(size=len(self.df)) < config.test_proportion
+            )
+            self.df.loc[test_indices.flat, 'split'] = 'test'
+            if self.df.split.unique().size != 2:
+                raise ValueError(
+                    f'The dataset size ({len(self.df)}) is incompatible with '
+                    f'a test set proportion of {config.test_proportion}.'
+                )
+
         # write examples to output
+        config.output_directory.mkdir(exist_ok=True, parents=True)
         self.df.to_csv(config.output_directory / 'data.csv', index=False)
 
         # initialize tokenizer
@@ -41,14 +56,21 @@ class RodongSinmunDataset(Dataset):
         self.max_length = config.max_length
 
         # tokenize examples for model
-        records = self.df.to_dict(orient='records')
-        self.examples = HFDataset.from_list(records).map(
-            self._encode,
-            remove_columns=self.df.columns.tolist(),
-            batched=True,
-            num_proc=cpu_count(),
-            desc='Encoding',
-        )
+        self.examples = {}
+        partitions = ['train']
+        if config.do_eval:
+            partitions += ['test']
+        for partition in partitions:
+            records = (
+                self.df.loc[self.df.split == partition].to_dict(orient='records')
+            )
+            self.examples[partition] = HFDataset.from_list(records).map(
+                self._encode,
+                remove_columns=self.df.columns.tolist(),
+                batched=True,
+                num_proc=cpu_count(),
+                desc=f'Encoding {partition}',
+            )
 
     def __getitem__(self, i: int):
         return self.examples[i]
