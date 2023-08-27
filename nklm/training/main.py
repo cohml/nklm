@@ -47,7 +47,10 @@ DEFAULTS = TrainingConfigDefaults()
     '--test-proportion', type=float, help=f'Default: {DEFAULTS.test_proportion}', callback=validate_proportion
 )
 @click.option(
-    '--batch-size', type=int, help=f'Default: {DEFAULTS.batch_size}'
+    '--train-batch-size', type=int, help=f'Default: {DEFAULTS.train_batch_size}'
+)
+@click.option(
+    '--test-batch-size', type=int, help=f'Default: {DEFAULTS.test_batch_size}'
 )
 @click.option(
     '--max-length', type=int, help=f'Default: {DEFAULTS.max_length}'
@@ -81,7 +84,8 @@ def main(
     num_epochs: int | None,
     do_eval: bool,
     test_proportion: float | None,
-    batch_size: float | None,
+    train_batch_size: float | None,
+    test_batch_size: float | None,
     max_length: int | None,
     mlm_probability: float | None,
     learning_rate: float | None,
@@ -103,7 +107,8 @@ def main(
         num_epochs=num_epochs,
         do_eval=do_eval,
         test_proportion=test_proportion,
-        batch_size=batch_size,
+        train_batch_size=train_batch_size,
+        test_batch_size=test_batch_size,
         max_length=max_length,
         mlm_probability=mlm_probability,
         learning_rate=learning_rate,
@@ -122,7 +127,7 @@ def main(
     train_dataloader = DataLoader(
         dataset.examples['train'],
         shuffle=True,
-        batch_size=config.batch_size,
+        batch_size=config.train_batch_size,
         collate_fn=data_collator,
     )
     n_train_batches = len(train_dataloader)
@@ -130,7 +135,7 @@ def main(
         eval_dataloader = DataLoader(
             dataset.examples['test'],
             shuffle=True,
-            batch_size=config.batch_size,
+            batch_size=config.test_batch_size,
             collate_fn=data_collator,
         )
         n_eval_batches = len(eval_dataloader)
