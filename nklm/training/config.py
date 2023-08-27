@@ -29,6 +29,7 @@ class TrainingConfigDefaults(BaseModel):
     weight_decay: float = Field(default=0.0)
     no_decay_bias_and_layer_norm: bool = Field(default=False)
     no_gpu: bool = Field(default=False)
+    seed: int = Field(default=42)
 
 
 class TrainingConfig(TrainingConfigDefaults):

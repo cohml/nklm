@@ -64,6 +64,9 @@ DEFAULTS = TrainingConfigDefaults()
 @click.option(
     '--no-gpu', is_flag=True, help=f'Default: {DEFAULTS.no_gpu}'
 )
+@click.option(
+    '--seed', type=int, help=f'Default: {DEFAULTS.seed}'
+)
 def main(
     config_json_path: str | None,
     output_directory: str | None,
@@ -80,6 +83,7 @@ def main(
     weight_decay: float | None,
     no_decay_bias_and_layer_norm: bool,
     no_gpu: bool,
+    seed: int,
 ) -> None:
 
     # configs
@@ -99,8 +103,9 @@ def main(
         weight_decay=weight_decay,
         no_decay_bias_and_layer_norm=no_decay_bias_and_layer_norm,
         no_gpu=no_gpu,
+        seed=seed,
     )
-    torch.manual_seed(42)
+    torch.manual_seed(config.seed)
 
     # data
     dataset = RodongSinmunDataset(config)
