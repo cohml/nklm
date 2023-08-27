@@ -29,7 +29,8 @@ class RodongSinmunDataset(Dataset):
         if config.sentence_tokenize is True:
             self.df = self._sentence_tokenize()
 
-        # TODO: write df to output directory
+        # write examples to output
+        self.df.to_csv(config.output_directory / 'data.csv', index=False)
 
         # initialize tokenizer
         self.tokenizer = DistilBertTokenizer.from_pretrained(
