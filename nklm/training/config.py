@@ -38,13 +38,15 @@ class TrainingConfig(TrainingConfigDefaults):
 
     def __init__(self, config_json_path: str | None = None, **kwargs):
         """
-        Initialize training configurations. Can be done in three ways:
+        Initialize training configurations.
 
         First, all configuration values are set to their defaults as defined
         via the `TrainingConfigDefaults` fields.
 
         Then and optionally, these values can be overridden by values specified
         in either a config JSON file or else passed programmatically as kwargs.
+
+        If a config JSON is specified, any kwargs also passed will be ignored.
         """
         super().__init__()
         if config_json_path:
@@ -55,7 +57,11 @@ class TrainingConfig(TrainingConfigDefaults):
             self._override_defaults(kwargs)
         self.output_directory = Path(self.output_directory).resolve()
         if not self.overwrite_existing:
-            assert not self.output_directory.exists() # TODO: add error message
+            assert not self.output_directory.exists(), (
+                f'The output directory {config.output_directory} already '
+                'exists. Specify another or pass `--overwrite-existing` '
+                'to overwrite it.'
+            )# TODO: add error message
 
     def _override_defaults(self, custom_configs: Dict[str, str]) -> None:
         for field, default_value in BaseModel._iter(TrainingConfigDefaults()):

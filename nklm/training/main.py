@@ -228,7 +228,7 @@ def main(
     }
     if config.do_eval:
         metrics['per_epoch_eval_loss'] = per_epoch_mean_eval_losses
-    with (config.output_directory / 'training_metrics.json').open('w') as f:
+    with (config.output_directory / 'training_losses.json').open('w') as f:
         json.dump(metrics, f, indent=4)
 
     print('***** Training complete *****')

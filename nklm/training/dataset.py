@@ -27,14 +27,14 @@ class RodongSinmunDataset(Dataset):
         self.df = pd.read_csv(config.data_csv_path).assign(split='train')
 
         # optionally sentence-tokenize articles with spacy
-        if config.sentence_tokenize is True:
+        if config.sentence_tokenize:
             self.df = self._sentence_tokenize()
 
         # optionally split into train and test partitions
         if config.do_eval:
             random_state = np.random.RandomState(config.seed)
             test_indices = np.argwhere(
-                random_state.random(size=len(self.df)) < config.test_proportion
+                random_state.random(len(self.df)) < config.test_proportion
             )
             self.df.loc[test_indices.flat, 'split'] = 'test'
             if self.df.split.unique().size != 2:
